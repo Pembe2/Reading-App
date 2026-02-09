@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Read-to-Advance (Barebones)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#121c33;
+      --line:rgba(255,255,255,.12);
+      --text:#eaf0ff;
+      --muted:#a7b6df;
+      --accent:#7aa2ff;
+      --good:#35d07f;
+      --bad:#ff6b6b;
+      --shadow:0 14px 40px rgba(0,0,0,.35);
+      --r:18px;
+      --sans:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 700px at 30% 20%, rgba(122,162,255,.18), transparent 55%),
+                  radial-gradient(1000px 700px at 80% 70%, rgba(53,208,127,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+    }
+    .wrap{
+      width:min(1100px, 100%);
+      padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+               max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+      display:flex;
+      gap:12px;
+      flex-direction:column;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 6px 0;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .title h1{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+    .title .sub{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .card{
+      flex:1;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      min-height: 0;
+    }
+    .card-top{
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .progress{
+      font-size:13px;
+      color:var(--muted);
+    }
+    .strict{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:13px;
+      user-select:none;
+      white-space:nowrap;
+    }
+    input[type="range"]{ width:160px; }
+
+    .page{
+      flex:1;
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      gap:14px;
+      padding:16px;
+      min-height:0;
+    }
+    .text-area{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px 18px;
+      background: rgba(0,0,0,.14);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      min-height:0;
+    }
+    .sentence{
+      font-size:28px;
+      line-height:1.25;
+      letter-spacing:.2px;
+    }
+    .hint{
+      margin-top:auto;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .side{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background: rgba(0,0,0,.10);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:0;
+    }
+    .btns{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    button{
+      appearance:none;
+      border:none;
+      border-radius:14px;
+      padding:12px 12px;
+      font-size:14px;
+      color:var(--text);
+      background: rgba(255,255,255,.08);
+      border:1px solid var(--line);
+      cursor:pointer;
+      transition: transform .06s ease, background .12s ease;
+      touch-action: manipulation;
+    }
+    button:active{ transform: scale(.98); }
+    button.primary{
+      background: rgba(122,162,255,.18);
+      border-color: rgba(122,162,255,.45);
+    }
+    button.good{
+      background: rgba(53,208,127,.16);
+      border-color: rgba(53,208,127,.45);
+    }
+    button.bad{
+      background: rgba(255,107,107,.14);
+      border-color: rgba(255,107,107,.40);
+    }
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+
+    .status{
+      border:1px dashed var(--line);
+      border-radius:14px;
+      padding:10px 10px;
+      font-size:13px;
+      color:var(--muted);
+      min-height: 66px;
+    }
+    .status strong{ color:var(--text); }
+
+    .transcript{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 10px;
+      background: rgba(255,255,255,.04);
+      overflow:auto;
+      min-height: 86px;
+      font-size:13px;
+      line-height:1.35;
+    }
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+    .kpi{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:auto;
+    }
+    .chip{
+      font-size:12px;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      background: rgba(255,255,255,.04);
+    }
+
+    /* Landscape-first hint */
+    .landscape-note{
+      display:none;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      color:var(--muted);
+      background: rgba(0,0,0,.14);
+      font-size:13px;
+      margin:0 6px;
+    }
+    @media (orientation: portrait){
+      .page{ grid-template-columns: 1fr; }
+      .landscape-note{ display:block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Read-to-Advance (Barebones)</h1>
+        <div class="sub">Tap <b>Listen</b>, read out loud, then advance if it matches.</div>
+      </div>
+      <div class="pill" id="supportPill">Checking browser support…</div>
+    </header>
+
+    <div class="landscape-note">
+      This app is designed for <b>landscape</b>. Rotate your device for the intended layout.
+    </div>
+
+    <section class="card">
+      <div class="card-top">
+        <div class="progress" id="progress">Card 1 of 1</div>
+        <label class="strict" title="How strict matching is. Higher = more strict.">
+          Strictness
+          <input id="strictness" type="range" min="0.70" max="0.95" step="0.01" value="0.85" />
+          <span id="strictVal">0.85</span>
+        </label>
+      </div>
+
+      <div class="page">
+        <div class="text-area">
+          <div class="sentence" id="cardText"></div>
+          <div class="hint">
+            Tip: If your son gets stuck, use <b>Speak it</b> to read the sentence aloud (text-to-speech).
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="btns">
+            <button class="primary" id="listenBtn">🎙️ Listen</button>
+            <button id="speakBtn">🔊 Speak it</button>
+            <button id="prevBtn">⬅️ Prev</button>
+            <button class="good" id="nextBtn" disabled>Next ➡️</button>
+          </div>
+
+          <label class="strict" style="justify-content:space-between;">
+            Bypass Listen (iPhone)
+            <input id="bypassToggle" type="checkbox" />
+          </label>
+          <div class="status" id="status">
+            <strong>Status:</strong> Ready.
+          </div>
+
+          <div class="label">He said (transcript):</div>
+          <div class="transcript" id="transcript">(nothing yet)</div>
+
+          <div class="kpi">
+            <div class="chip">Match: <b id="score">—</b></div>
+            <div class="chip">Need: <b id="need">0.85</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+(() => {
+  // ---------- Content (edit these sentences) ----------
+  const cards = [
+    "I like to draw.\n\nToday I sketch a tall lighthouse.",
+    "We go to the park.\n\nThe wind tastes like rain.",
+    "A red ball bumps my shoe.\n\nIt rolls with a steady rhythm.",
+    "I lift it and feel grit.\n\nSomeone has been throwing it hard.",
+    "A small dog races over.\n\nHe stops, ears up, waiting.",
+    "I toss the ball lightly.\n\nHe springs like a coiled toy.",
+    "He drops it at my feet.\n\nHis tag says, \"Pip.\"",
+    "Pip circles me twice.\n\nHe seems brave, but a bit lost.",
+    "A girl hurries over the hill.\n\nHer breath is quick and thin.",
+    "She calls, \"Pip!\"\n\nThen she sees me with the ball.",
+    "Her name is Mia.\n\nShe thanks me and checks his collar.",
+    "Mia frowns at the sky.\n\n\"I lost my kite,\" she says.",
+    "It is blue with white stars.\n\nHer brother made it last summer.",
+    "We climb the hill together.\n\nThe wind pushes at our jackets.",
+    "We find a string in the grass.\n\nIt disappears under a fence.",
+    "We follow it along the posts.\n\nThe wire hums when the wind hits.",
+    "The kite is tangled high.\n\nIts tail whips like a ribbon.",
+    "I lift the wire carefully.\n\nMia slides the frame free.",
+    "The kite opens wide again.\n\nIt drinks the wind and shakes.",
+    "We run down the slope.\n\nThe line tightens in my hands.",
+    "The kite climbs above the trees.\n\nIt pulls like a small sail.",
+    "Pip chases our shadows.\n\nHis paws drum the path.",
+    "Mia laughs and points.\n\nA hawk circles the kite.",
+    "We dip the line low.\n\nThe hawk veers away.",
+    "Mia lets me steer.\n\nI lean into the tug.",
+    "The sun slides behind clouds.\n\nThe light turns soft and silver.",
+    "We reel the kite in slowly.\n\nThe frame clicks as it folds.",
+    "At the gate, Mia waves.\n\n\"Come fly it tomorrow,\" she says.",
+    "I nod and grin.\n\nPip barks like an answer.",
+    "At home I draw again.\n\nA kite, a dog, and a new friend."
+  ];
+
+  // ---------- DOM ----------
+  const cardTextEl = document.getElementById("cardText");
+  const progressEl = document.getElementById("progress");
+  const supportPill = document.getElementById("supportPill");
+  const strictnessEl = document.getElementById("strictness");
+  const strictValEl = document.getElementById("strictVal");
+  const needEl = document.getElementById("need");
+  const scoreEl = document.getElementById("score");
+  const statusEl = document.getElementById("status");
+  const transcriptEl = document.getElementById("transcript");
+
+  const listenBtn = document.getElementById("listenBtn");
+  const speakBtn  = document.getElementById("speakBtn");
+  const prevBtn   = document.getElementById("prevBtn");
+  const nextBtn   = document.getElementById("nextBtn");
+  const bypassToggle = document.getElementById("bypassToggle");
+
+  // ---------- Speech Recognition setup ----------
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const hasRecognition = !!SpeechRecognition;
+
+  // ---------- Text-to-Speech ----------
+  const hasTTS = "speechSynthesis" in window;
+
+  // ---------- State ----------
+  let idx = 0;
+  let recognition = null;
+  let listening = false;
+
+  function setStatus(html, tone = "muted") {
+    const color = tone === "good" ? "var(--good)" : tone === "bad" ? "var(--bad)" : "var(--muted)";
+    statusEl.innerHTML = `<strong>Status:</strong> <span style="color:${color}">${html}</span>`;
+  }
+
+  function normalize(s){
+    return (s || "")
+      .toLowerCase()
+      .replace(/[\u2019']/g, "'")
+      .replace(/[^a-z0-9\s']/g, " ")   // remove punctuation
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // Levenshtein distance (simple, fine for short text)
+  function levenshtein(a, b){
+    const m = a.length, n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    const dp = new Array(n + 1);
+    for (let j = 0; j <= n; j++) dp[j] = j;
+    for (let i = 1; i <= m; i++){
+      let prev = dp[0];
+      dp[0] = i;
+      for (let j = 1; j <= n; j++){
+        const temp = dp[j];
+        const cost = a[i-1] === b[j-1] ? 0 : 1;
+        dp[j] = Math.min(dp[j] + 1, dp[j-1] + 1, prev + cost);
+        prev = temp;
+      }
+    }
+    return dp[n];
+  }
+
+  function similarity(a, b){
+    // Character-based similarity using Levenshtein
+    if (!a && !b) return 1;
+    if (!a || !b) return 0;
+    const dist = levenshtein(a, b);
+    const maxLen = Math.max(a.length, b.length);
+    return Math.max(0, 1 - dist / maxLen);
+  }
+
+  function render(){
+    const text = cards[idx];
+    cardTextEl.textContent = text;
+    progressEl.textContent = `Card ${idx+1} of ${cards.length}`;
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = !bypassToggle.checked;
+    listenBtn.disabled = bypassToggle.checked;
+    transcriptEl.textContent = "(nothing yet)";
+    scoreEl.textContent = "—";
+    if (bypassToggle.checked){
+      setStatus("Bypass enabled. Tap Next to continue.", "muted");
+    } else {
+      setStatus("Ready.");
+    }
+  }
+
+  function updateStrictnessUI(){
+    const v = Number(strictnessEl.value);
+    strictValEl.textContent = v.toFixed(2);
+    needEl.textContent = v.toFixed(2);
+  }
+
+  function stopListening(){
+    listening = false;
+    listenBtn.textContent = "🎙️ Listen";
+    if (recognition) {
+      try { recognition.stop(); } catch {}
+    }
+  }
+
+  function startListening(){
+    if (bypassToggle.checked){
+      setStatus("Bypass enabled. Listening is off.", "bad");
+      return;
+    }
+    if (!hasRecognition){
+      setStatus("Speech recognition not supported here. Try Chrome/Edge on desktop/Android.", "bad");
+      return;
+    }
+    if (listening) { stopListening(); return; }
+
+    // Cancel any TTS while listening
+    if (hasTTS) {
+      try { window.speechSynthesis.cancel(); } catch {}
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 3;
+
+    listening = true;
+    listenBtn.textContent = "⏹ Stop";
+    setStatus("Listening… read the card out loud.", "muted");
+
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript || "";
+      transcriptEl.textContent = transcript || "(empty)";
+      const expected = normalize(cards[idx].replace(/\n+/g, " "));
+      const said = normalize(transcript);
+      const score = similarity(said, expected);
+
+      scoreEl.textContent = score.toFixed(2);
+
+      const threshold = Number(strictnessEl.value);
+      if (score >= threshold){
+        setStatus(`Nice! That matches (score ${score.toFixed(2)}). Next unlocked.`, "good");
+        nextBtn.disabled = false;
+      } else {
+        setStatus(`Almost. Try again (score ${score.toFixed(2)}).`, "bad");
+        nextBtn.disabled = true;
+      }
+
+      stopListening();
+    };
+
+    recognition.onerror = (e) => {
+      const msg = (e && e.error) ? e.error : "unknown error";
+      setStatus(`Speech error: ${msg}.`, "bad");
+      stopListening();
+    };
+
+    recognition.onend = () => {
+      // Some browsers end automatically after result; ensure UI resets.
+      if (listening) stopListening();
+    };
+
+    try {
+      recognition.start();
+    } catch (err) {
+      setStatus("Could not start microphone. Check permissions.", "bad");
+      stopListening();
+    }
+  }
+
+  function speakCard(){
+    if (!hasTTS){
+      setStatus("Text-to-speech not supported here.", "bad");
+      return;
+    }
+    // Don’t overlap utterances
+    try { window.speechSynthesis.cancel(); } catch {}
+    const u = new SpeechSynthesisUtterance(cards[idx].replace(/\n+/g, " "));
+    u.lang = "en-US";
+    u.rate = 0.95;   // slightly slower for kids
+    u.pitch = 1.0;
+    setStatus("Speaking the sentence…", "muted");
+    u.onend = () => setStatus("Ready.");
+    u.onerror = () => setStatus("TTS error.", "bad");
+    window.speechSynthesis.speak(u);
+  }
+
+  function next(){
+    if (idx < cards.length - 1){
+      idx++;
+      render();
+    }
+  }
+
+  function prev(){
+    if (idx > 0){
+      idx--;
+      render();
+    }
+  }
+
+  // ---------- Wire up ----------
+  strictnessEl.addEventListener("input", updateStrictnessUI);
+  listenBtn.addEventListener("click", startListening);
+  speakBtn.addEventListener("click", speakCard);
+  nextBtn.addEventListener("click", next);
+  prevBtn.addEventListener("click", prev);
+  bypassToggle.addEventListener("change", render);
+
+  // Keyboard helpers (desktop testing)
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" && !nextBtn.disabled) next();
+    if (e.key === "ArrowLeft") prev();
+    if (e.key.toLowerCase() === "l") startListening();
+    if (e.key.toLowerCase() === "s") speakCard();
+  });
+
+  // ---------- Support indicator ----------
+  const recogText = hasRecognition ? "Speech recognition: ✅" : "Speech recognition: ❌";
+  const ttsText = hasTTS ? "TTS: ✅" : "TTS: ❌";
+  supportPill.textContent = `${recogText}  •  ${ttsText}`;
+
+  if (!hasRecognition){
+    bypassToggle.checked = true;
+  }
+  if (!hasRecognition){
+    supportPill.textContent += " (iPhone uses bypass)";
+  }
+
+  updateStrictnessUI();
+  render();
+})();
+</script>
+</body>
+</html>
