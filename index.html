@@ -386,11 +386,11 @@
           <div class="label">Story</div>
           <select id="storySelect" aria-label="Story picker"></select>
 
-          <div class="label" style="margin-top:8px;">Tags</div>
-          <div class="kpi" id="storyTags"></div>
-
           <div class="label" style="margin-top:8px;">Summary</div>
           <div class="transcript" id="storyDesc"></div>
+
+          <div class="label" style="margin-top:8px;">Tags</div>
+          <div class="kpi" id="storyTags"></div>
 
           <div class="btns" style="margin-top:8px; grid-template-columns: 1fr;">
             <button class="good" id="startBtn">Start Reading</button>
@@ -690,6 +690,13 @@
 
   function renderStoryMeta(){
     const s = activeStory();
+    storyTagsEl.innerHTML = "";
+    (s.tags || []).forEach((tag) => {
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      chip.textContent = tag;
+      storyTagsEl.appendChild(chip);
+    });
     storyDescEl.textContent = s.description || "";
     storyTagsEl.innerHTML = "";
     (s.tags || []).forEach((tag) => {
