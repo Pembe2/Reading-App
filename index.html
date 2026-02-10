@@ -137,11 +137,18 @@
       flex-direction:column;
       gap:14px;
       min-height:0;
+      overflow:auto;
     }
     .sentence{
-      font-size:28px;
+      font-size:clamp(24px, 5.6vw, 36px);
       line-height:1.25;
       letter-spacing:.2px;
+      overflow-wrap:anywhere;
+    }
+    .side-row{
+      display:flex;
+      gap:10px;
+      align-items:stretch;
     }
     .hint{
       margin-top:auto;
@@ -296,6 +303,10 @@
       color:var(--text);
       text-align:center;
       min-height: 44px;
+      flex:1 1 auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
     .status strong{ color:var(--text); }
     .label{
@@ -342,7 +353,7 @@
       .text-area{
         min-height:25vh;
       }
-      .sentence{ font-size:32px; }
+      .sentence{ font-size:clamp(26px, 6vw, 38px); }
       .side{
         order:2;
       }
@@ -423,12 +434,12 @@
             Bypass Listen (iPhone)
             <input id="bypassToggle" type="checkbox" />
           </label>
-          <div class="status" id="status">â€”</div>
-
-          <div class="kpi">
-            <div class="chip">Match: <b id="score">—</b></div>
-            <div class="chip">Need: <b id="need">0.85</b></div>
-          </div>
+          <div class="side-row">
+            <div class="status" id="status">�</div>
+            <div class="kpi">
+              <div class="chip">Match: <b id="score">�</b></div>
+              <div class="chip">Need: <b id="need">0.85</b></div>
+            </div>
         </div>
       </div>
     </section>
@@ -924,3 +935,4 @@
 </script>
 </body>
 </html>
+
