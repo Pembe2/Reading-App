@@ -13,13 +13,20 @@
       --muted:#a7b6df;
       --accent:#7aa2ff;
       --good:#35d07f;
+      --warn:#f4a742;
       --bad:#ff6b6b;
       --shadow:0 14px 40px rgba(0,0,0,.35);
       --r:18px;
       --sans:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
     }
     *{ box-sizing:border-box; }
-    html,body{ height:100%; }
+    html,body{ height:100%; min-height:100%; }
+    @supports (height: 100svh){
+      html,body{ height:100svh; min-height:100svh; }
+    }
+    @supports (height: 100dvh){
+      html,body{ height:100dvh; min-height:100dvh; }
+    }
     body{
       margin:0;
       font-family:var(--sans);
@@ -30,14 +37,22 @@
       display:flex;
       align-items:stretch;
       justify-content:center;
+      overflow:hidden;
     }
     .wrap{
       width:min(1100px, 100%);
+      min-height:100vh;
       padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
                max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
       display:flex;
       gap:12px;
       flex-direction:column;
+    }
+    @supports (min-height: 100svh){
+      .wrap{ min-height:100svh; }
+    }
+    @supports (min-height: 100dvh){
+      .wrap{ min-height:100dvh; }
     }
     header{
       display:flex;
@@ -78,6 +93,9 @@
       flex-direction:column;
       overflow:hidden;
       min-height: 0;
+    }
+    .card-compact{
+      flex:0 0 auto;
     }
     .card-top{
       padding:14px 16px;
@@ -141,6 +159,10 @@
       gap:10px;
       min-height:0;
     }
+    .side .strict{ order:1; }
+    .side .status{ order:2; }
+    .side .kpi{ order:3; }
+    .side .btns{ order:4; margin-top:auto; }
     .btns{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -176,27 +198,106 @@
       opacity:.45;
       cursor:not-allowed;
     }
+    select{
+      appearance:none;
+      border:none;
+      border-radius:14px;
+      padding:12px 12px;
+      font-size:14px;
+      color:var(--text);
+      background: rgba(255,255,255,.08);
+      border:1px solid var(--line);
+      width:100%;
+    }
+    /* Improve native dropdown readability (Safari/iOS) */
+    select option{
+      color: black;
+      background: rgba(255,255,255,.08);
+    }
+    .hidden{ display:none !important; }
+    .modal{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(6,10,22,.72);
+      backdrop-filter: blur(4px);
+      z-index:999;
+      opacity:0;
+      pointer-events:none;
+    }
+    .modal.show{
+      opacity:1;
+      pointer-events:auto;
+      animation: modalFade 1s ease-out;
+    }
+    .modal-card{
+      width:min(420px, 92vw);
+      padding:22px 20px;
+      border:1px solid var(--text);
+      box-shadow: 0 0 0 1px rgba(234,240,255,.35), var(--shadow);
+      border-radius:18px;
+      background: radial-gradient(300px 160px at 20% 0%, rgba(122,162,255,.22), transparent 60%),
+                  radial-gradient(260px 180px at 80% 120%, rgba(53,208,127,.18), transparent 60%),
+                  rgba(10,16,30,.95);
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .modal.show .modal-card{
+      animation:
+        modalSlideUp .9s cubic-bezier(.12, 1.1, .2, 1.25),
+        borderPulse 1.2s ease-in-out infinite;
+    }
+    .modal-title{
+      font-size:22px;
+      margin:0 0 6px;
+    }
+    .modal-title.pulse{
+      animation: titlePulse 1.2s ease-in-out infinite;
+      text-shadow: 0 0 10px rgba(234,240,255,.75),
+                   0 0 22px rgba(234,240,255,.35);
+    }
+    .modal-card.pulse-border{
+      animation: borderPulse 1.2s ease-in-out infinite;
+    }
+    .modal-sub{
+      font-size:14px;
+      color:var(--muted);
+      margin:0 0 14px;
+    }
+    @keyframes titlePulse{
+      0%{ transform: scale(1); opacity:.9; }
+      50%{ transform: scale(1.05); opacity:1; }
+      100%{ transform: scale(1); opacity:.9; }
+    }
+    @keyframes borderPulse{
+      0%{ transform: scale(1); opacity:.9; }
+      50%{ transform: scale(1.05); opacity:1; }
+      100%{ transform: scale(1); opacity:.9; }
+    }
+    @keyframes modalFade{
+      from{ opacity:0; backdrop-filter: blur(0px); }
+      to{ opacity:1; backdrop-filter: blur(4px); }
+    }
+    @keyframes modalSlideUp{
+      0%{ transform: translateY(140vh) scale(.92); opacity:1; }
+      55%{ transform: translateY(-40px) scale(1.06); opacity:1; }
+      75%{ transform: translateY(24px) scale(.99); }
+      100%{ transform: translateY(0) scale(1); }
+    }
 
     .status{
-      border:1px dashed var(--line);
-      border-radius:14px;
-      padding:10px 10px;
-      font-size:13px;
-      color:var(--muted);
-      min-height: 66px;
-    }
-    .status strong{ color:var(--text); }
-
-    .transcript{
       border:1px solid var(--line);
       border-radius:14px;
-      padding:10px 10px;
-      background: rgba(255,255,255,.04);
-      overflow:auto;
-      min-height: 86px;
-      font-size:13px;
-      line-height:1.35;
+      padding:12px 12px;
+      font-size:16px;
+      color:var(--text);
+      text-align:center;
+      min-height: 44px;
     }
+    .status strong{ color:var(--text); }
     .label{
       font-size:12px;
       color:var(--muted);
@@ -217,20 +318,37 @@
       background: rgba(255,255,255,.04);
     }
 
-    /* Landscape-first hint */
-    .landscape-note{
-      display:none;
-      padding:10px 12px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      color:var(--muted);
-      background: rgba(0,0,0,.14);
-      font-size:13px;
-      margin:0 6px;
-    }
     @media (orientation: portrait){
-      .page{ grid-template-columns: 1fr; }
-      .landscape-note{ display:block; }
+      .wrap{
+        padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
+                 max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+        gap:8px;
+      }
+      header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:6px;
+      }
+      .card-top{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+      }
+      .page{
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+        padding:12px;
+      }
+      .text-area{
+        min-height:25vh;
+      }
+      .sentence{ font-size:32px; }
+      .side{
+        order:2;
+      }
+      .text-area{
+        order:1;
+      }
     }
   </style>
 </head>
@@ -244,11 +362,33 @@
       <div class="pill" id="supportPill">Checking browser support…</div>
     </header>
 
-    <div class="landscape-note">
-      This app is designed for <b>landscape</b>. Rotate your device for the intended layout.
-    </div>
+    <section class="card card-compact" id="welcomeCard">
+      <div class="card-top">
+        <div class="progress">Welcome</div>
+        <div class="pill">Choose a story to begin</div>
+      </div>
+      <div class="page">
+        <div class="text-area">
+          <div class="sentence">Pick a story, then tap Start.</div>
+        </div>
+        <div class="side">
+          <div class="label">Story</div>
+          <select id="storySelect" aria-label="Story picker"></select>
 
-    <section class="card">
+          <div class="label" style="margin-top:8px;">Tags</div>
+          <div class="kpi" id="storyTags"></div>
+
+          <div class="label" style="margin-top:8px;">Summary</div>
+          <div class="transcript" id="storyDesc"></div>
+
+          <div class="btns" style="margin-top:8px; grid-template-columns: 1fr;">
+            <button class="good" id="startBtn">Start Reading</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="readerCard">
       <div class="card-top">
         <div class="progress" id="progress">Card 1 of 1</div>
         <label class="strict" title="How strict matching is. Higher = more strict.">
@@ -256,13 +396,18 @@
           <input id="strictness" type="range" min="0.70" max="0.95" step="0.01" value="0.85" />
           <span id="strictVal">0.85</span>
         </label>
+        <label class="strict" title="Maximum listen time before auto stop.">
+          Listen Time
+          <input id="listenTime" type="range" min="6" max="25" step="1" value="20" />
+          <span id="listenTimeVal">20s</span>
+        </label>
       </div>
 
       <div class="page">
         <div class="text-area">
           <div class="sentence" id="cardText"></div>
           <div class="hint">
-            Tip: If your son gets stuck, use <b>Speak it</b> to read the sentence aloud (text-to-speech).
+            Tip: If your child gets stuck, use <b>Speak it</b> to read the sentence aloud (text-to-speech).
           </div>
         </div>
 
@@ -278,12 +423,7 @@
             Bypass Listen (iPhone)
             <input id="bypassToggle" type="checkbox" />
           </label>
-          <div class="status" id="status">
-            <strong>Status:</strong> Ready.
-          </div>
-
-          <div class="label">He said (transcript):</div>
-          <div class="transcript" id="transcript">(nothing yet)</div>
+          <div class="status" id="status">â€”</div>
 
           <div class="kpi">
             <div class="chip">Match: <b id="score">—</b></div>
@@ -294,40 +434,112 @@
     </section>
   </div>
 
+  <div class="modal hidden" id="celebrateModal" aria-hidden="true">
+    <div class="modal-card pulse-border" role="dialog" aria-modal="true" aria-labelledby="celebrateTitle">
+      <h2 class="modal-title pulse" id="celebrateTitle">Great job!</h2>
+      <button class="good" id="celebrateNextBtn">Next Page</button>
+    </div>
+  </div>
+
 <script>
 (() => {
-  // ---------- Content (edit these sentences) ----------
-  const cards = [
-    "I like to draw.\n\nToday I sketch a tall lighthouse.",
-    "We go to the park.\n\nThe wind tastes like rain.",
-    "A red ball bumps my shoe.\n\nIt rolls with a steady rhythm.",
-    "I lift it and feel grit.\n\nSomeone has been throwing it hard.",
-    "A small dog races over.\n\nHe stops, ears up, waiting.",
-    "I toss the ball lightly.\n\nHe springs like a coiled toy.",
-    "He drops it at my feet.\n\nHis tag says, \"Pip.\"",
-    "Pip circles me twice.\n\nHe seems brave, but a bit lost.",
-    "A girl hurries over the hill.\n\nHer breath is quick and thin.",
-    "She calls, \"Pip!\"\n\nThen she sees me with the ball.",
-    "Her name is Mia.\n\nShe thanks me and checks his collar.",
-    "Mia frowns at the sky.\n\n\"I lost my kite,\" she says.",
-    "It is blue with white stars.\n\nHer brother made it last summer.",
-    "We climb the hill together.\n\nThe wind pushes at our jackets.",
-    "We find a string in the grass.\n\nIt disappears under a fence.",
-    "We follow it along the posts.\n\nThe wire hums when the wind hits.",
-    "The kite is tangled high.\n\nIts tail whips like a ribbon.",
-    "I lift the wire carefully.\n\nMia slides the frame free.",
-    "The kite opens wide again.\n\nIt drinks the wind and shakes.",
-    "We run down the slope.\n\nThe line tightens in my hands.",
-    "The kite climbs above the trees.\n\nIt pulls like a small sail.",
-    "Pip chases our shadows.\n\nHis paws drum the path.",
-    "Mia laughs and points.\n\nA hawk circles the kite.",
-    "We dip the line low.\n\nThe hawk veers away.",
-    "Mia lets me steer.\n\nI lean into the tug.",
-    "The sun slides behind clouds.\n\nThe light turns soft and silver.",
-    "We reel the kite in slowly.\n\nThe frame clicks as it folds.",
-    "At the gate, Mia waves.\n\n\"Come fly it tomorrow,\" she says.",
-    "I nod and grin.\n\nPip barks like an answer.",
-    "At home I draw again.\n\nA kite, a dog, and a new friend."
+  // ---------- Content (stories + tags) ----------
+  const stories = [
+    {
+      id: "magic-awakening",
+      title: "The Day the Light Listened",
+      description: "Ten-year-old Leo discovers he can guide light and lift small objects. A quiet power becomes a brave choice.",
+      tags: ["grade:4-5", "topic:magic", "length:10m"],
+      cards: [
+        "I am ten, and I love riddles, secrets, and the quiet attic.\n\nOn windy days the roof thumps like a slow drum.",
+        "This afternoon the attic smells like dust and rain.\n\nI find a box with a brass latch that feels warm, as if it has been in the sun.",
+        "Inside is a small mirror with stars carved around the edge.\n\nWhen I tilt it, a bright line appears and bends toward my finger.",
+        "I whisper, \"Stop,\" and the light freezes in midair.\n\nMy heart jumps, and I whisper, \"Go,\" and it slides across the wall.",
+        "I try a pencil next, and it rises a little and hovers.\n\nI gasp and drop it, and it rolls under an old trunk.",
+        "I run downstairs, but Mom is on a call and does not look up.\n\nSo I keep the secret all day, and it feels both heavy and bright.",
+        "After dinner I test it again, and the mirror warms in my hands.\n\nI can lift a paper clip, and I can spin a coin.",
+        "Outside, my friend Zane yells because his bike chain is stuck.\n\nHe kicks the wheel, but the chain bites and will not budge.",
+        "I want to help, and my stomach twists like a knot.\n\nI focus on the chain, and it loosens, link by link.",
+        "Zane stares at me and says, \"How did you do that?\"\n\nI say, \"Lucky tug,\" but my voice sounds thin.",
+        "On the walk home, the streetlights flicker as if they know me.\n\nThey lean toward me, and then stand straight again.",
+        "I think about what power means and how it should be used.\n\nIt is not a toy, and it should not be a secret that grows alone.",
+        "I tell Mom after we wash the dishes.\n\nShe listens, kneels, and says, \"We will be careful.\"",
+        "That night I write a rule and tape it beside my bed.\n\nUse light to help, not to hide."
+      ]
+    },
+    {
+      id: "kite-and-pip",
+      title: "Kite, Wind, and a New Friend",
+      description: "A lost dog, a stuck kite, and a windy hill turn an ordinary afternoon into a small adventure.",
+      tags: ["grade:3-4", "topic:friendship", "length:8m"],
+      cards: [
+        "I like to draw, and today I sketch a tall lighthouse with a wide door.\n\nWhen I close my notebook, we head to the park.",
+        "The wind tastes like rain, and it tugs at our sleeves.\n\nA red ball bumps my shoe and rolls with a steady rhythm.",
+        "I lift it and feel grit on the rubber, as if someone threw it hard.\n\nA small dog races over and stops with his ears up.",
+        "I toss the ball lightly, and he springs like a coiled toy.\n\nHe drops it at my feet, and his tag says, \"Pip.\"",
+        "Pip circles me twice, brave but a little lost.\n\nA girl hurries over the hill with quick, thin breaths.",
+        "She calls, \"Pip!\" and then sees me with the ball.\n\nHer name is Mia, and she thanks me while she checks his collar.",
+        "Mia looks at the sky and frowns.\n\n\"I lost my kite,\" she says, \"the blue one with white stars.\"",
+        "We climb the hill together while the wind pushes at our jackets.\n\nIn the grass we find a string that disappears under a fence.",
+        "We follow it along the posts, and the wire hums when the wind hits.\n\nThe kite is tangled high, and its tail whips like a ribbon.",
+        "I lift the wire carefully while Mia slides the frame free.\n\nThe kite opens wide and drinks the wind.",
+        "We run down the slope, and the line tightens in my hands.\n\nThe kite climbs above the trees and pulls like a small sail.",
+        "Pip chases our shadows, and his paws drum the path.\n\nMia laughs and points as a hawk circles the kite.",
+        "We dip the line low, and the hawk veers away.\n\nMia lets me steer, and I lean into the tug.",
+        "The sun slides behind clouds, and the light turns soft and silver.\n\nWe reel the kite in slowly, and the frame clicks as it folds.",
+        "At the gate, Mia waves and says, \"Come fly it tomorrow.\"\n\nI nod and grin, and Pip barks like an answer.",
+        "At home I draw again, but this time I add a kite, a dog, and a new friend.\n\nThe lighthouse keeps watch in the corner of the page."
+      ]
+    },
+    {
+      id: "little-lantern-school",
+      title: "The Little Lantern School",
+      description: "A quiet boy finds a hidden magic class inside an old library and learns that care is the first spell.",
+      tags: ["grade:2", "topic:magic", "length:6m"],
+      cards: [
+        "My name is Eli, and I am in second grade.\n\nI like the library because it smells like paper after rain.",
+        "One day I notice a tiny door behind a tall shelf.\n\nA lantern hangs above it and shines with warm light.",
+        "I open the door, and the light spills over my shoes.\n\nInside is a small room where kids sit in a quiet circle.",
+        "A teacher smiles and says her name is Ms. Lark.\n\nShe tells us, \"Welcome to the lantern class.\"",
+        "We learn our first spell, and it folds paper into a bird.\n\nMy bird flaps once and lands in my hand.",
+        "Ms. Lark says magic needs care and honest words.\n\nWe practice \"kind light,\" and the room glows softly.",
+        "At the end, the lantern winks and the door fades away.\n\nI walk home feeling quiet and bright."
+      ]
+    },
+    {
+      id: "mailbox-wand",
+      title: "The Wand in the Mailbox",
+      description: "A boy finds a letter with no stamp and a wooden wand that seems to know his name.",
+      tags: ["grade:2", "topic:magic", "length:5m"],
+      cards: [
+        "On Monday I check the mail, and a letter waits with no stamp.\n\nMy name is written on the front in neat, careful lines.",
+        "Inside the envelope is a thin wooden wand that smells like pine.\n\nA note says, \"Try the word STAR.\"",
+        "I whisper the word, and a tiny spark pops in the air.\n\nI jump back, then try again.",
+        "The spark grows bright, and my pencil lifts off the table.\n\nIt spins like a top and then floats down.",
+        "Mom calls me for dinner, so I hide the wand in my desk.\n\nThat night I practice softly and the room glows warm.",
+        "Before I sleep, I write one rule on a sticky note.\n\nUse magic to help, not to show."
+      ]
+    },
+    {
+      id: "dream-drawings",
+      title: "The Dream Sketchbook",
+      description: "A boy’s drawings come alive when he sleeps, and he steps into his own art to solve gentle adventures.",
+      tags: ["grade:2", "topic:imagination", "length:12m"],
+      cards: [
+        "My name is Ben, and I like to draw after school.\n\nOnce I drew a castle from long ago with a round blue door.",
+        "I drew a river that curled like a ribbon and a fox with a silver tail.\n\nI set my sketchbook beside my bed and fell asleep.",
+        "In my dream, the blue door opened, and I stepped inside.\n\nThe castle was real, and the stones felt cool under my hand.",
+        "The river flowed and seemed to sing as it passed.\n\nThe silver fox bowed and spoke in a small, clear voice.",
+        "\"The bridge is gone,\" it said, \"and we cannot cross.\"\n\nSo I pulled out my pencil and drew a bridge in the air.",
+        "The bridge appeared and shone like glass.\n\nThe fox ran across and waved its tail with a smile.",
+        "We walked into a forest where the leaves glowed like lamps.\n\nA tiny town slept there, and its clock had stopped.",
+        "The fox showed me the clock with blank hands.\n\nI drew new hands, and the tick, tock began.",
+        "The town woke up, and windows shone with light.\n\nWe crossed the river again, and the water felt warm.",
+        "A cloud hid the moon, so I drew a lantern that floated beside us.\n\nThe fox smiled and said, \"You are the maker.\"",
+        "We reached the blue door, and I felt sleepy again.\n\nI stepped through and woke up with my sketchbook open.",
+        "On the page was a new drawing I had not made.\n\nA silver fox was waving back at me."
+      ]
+    }
   ];
 
   // ---------- DOM ----------
@@ -336,16 +548,26 @@
   const supportPill = document.getElementById("supportPill");
   const strictnessEl = document.getElementById("strictness");
   const strictValEl = document.getElementById("strictVal");
+  const listenTimeEl = document.getElementById("listenTime");
+  const listenTimeValEl = document.getElementById("listenTimeVal");
   const needEl = document.getElementById("need");
   const scoreEl = document.getElementById("score");
   const statusEl = document.getElementById("status");
-  const transcriptEl = document.getElementById("transcript");
 
   const listenBtn = document.getElementById("listenBtn");
   const speakBtn  = document.getElementById("speakBtn");
   const prevBtn   = document.getElementById("prevBtn");
   const nextBtn   = document.getElementById("nextBtn");
   const bypassToggle = document.getElementById("bypassToggle");
+
+  const welcomeCard = document.getElementById("welcomeCard");
+  const readerCard = document.getElementById("readerCard");
+  const storySelect = document.getElementById("storySelect");
+  const storyTagsEl = document.getElementById("storyTags");
+  const storyDescEl = document.getElementById("storyDesc");
+  const startBtn = document.getElementById("startBtn");
+  const celebrateModal = document.getElementById("celebrateModal");
+  const celebrateNextBtn = document.getElementById("celebrateNextBtn");
 
   // ---------- Speech Recognition setup ----------
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -355,13 +577,19 @@
   const hasTTS = "speechSynthesis" in window;
 
   // ---------- State ----------
+  let storyIdx = 0;
   let idx = 0;
   let recognition = null;
   let listening = false;
+  let listenTimer = null;
+  let listenBuffer = "";
 
-  function setStatus(html, tone = "muted") {
-    const color = tone === "good" ? "var(--good)" : tone === "bad" ? "var(--bad)" : "var(--muted)";
-    statusEl.innerHTML = `<strong>Status:</strong> <span style="color:${color}">${html}</span>`;
+  function setStatus(text, tone = "muted") {
+    const color =
+      tone === "good" ? "var(--good)" :
+      tone === "warn" ? "var(--warn)" :
+      tone === "bad" ? "var(--bad)" : "var(--muted)";
+    statusEl.innerHTML = `<span style="color:${color}">${text}</span>`;
   }
 
   function normalize(s){
@@ -371,6 +599,16 @@
       .replace(/[^a-z0-9\s']/g, " ")   // remove punctuation
       .replace(/\s+/g, " ")
       .trim();
+  }
+
+  function normalizeWords(s){
+    const words = normalize(s).split(" ").filter(Boolean);
+    // Collapse consecutive duplicates: "the the dog" -> "the dog"
+    const out = [];
+    for (const w of words){
+      if (out.length === 0 || out[out.length - 1] !== w) out.push(w);
+    }
+    return out;
   }
 
   // Levenshtein distance (simple, fine for short text)
@@ -402,19 +640,103 @@
     return Math.max(0, 1 - dist / maxLen);
   }
 
+  function wordSimilarity(aWords, bWords){
+    // Word-level Levenshtein distance
+    const m = aWords.length, n = bWords.length;
+    if (m === 0 && n === 0) return 1;
+    if (m === 0 || n === 0) return 0;
+    const dp = new Array(n + 1);
+    for (let j = 0; j <= n; j++) dp[j] = j;
+    for (let i = 1; i <= m; i++){
+      let prev = dp[0];
+      dp[0] = i;
+      for (let j = 1; j <= n; j++){
+        const temp = dp[j];
+        const cost = aWords[i-1] === bWords[j-1] ? 0 : 1;
+        dp[j] = Math.min(dp[j] + 1, dp[j-1] + 1, prev + cost);
+        prev = temp;
+      }
+    }
+    const dist = dp[n];
+    const maxLen = Math.max(m, n);
+    return Math.max(0, 1 - dist / maxLen);
+  }
+
+  function activeStory(){
+    return stories[storyIdx];
+  }
+
+  function populateStories(){
+    storySelect.innerHTML = "";
+    stories.forEach((s, i) => {
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = s.title;
+      storySelect.appendChild(opt);
+    });
+    storySelect.value = String(storyIdx);
+  }
+
+  function renderStoryMeta(){
+    const s = activeStory();
+    storyDescEl.textContent = s.description || "";
+    storyTagsEl.innerHTML = "";
+    (s.tags || []).forEach((tag) => {
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      chip.textContent = tag;
+      storyTagsEl.appendChild(chip);
+    });
+  }
+
+  function setStory(i){
+    storyIdx = i;
+    idx = 0;
+    renderStoryMeta();
+    render();
+  }
+
+  function startReading(){
+    welcomeCard.classList.add("hidden");
+    readerCard.classList.remove("hidden");
+    render();
+  }
+
+  function openCelebration(){
+    celebrateModal.classList.remove("hidden");
+    celebrateModal.setAttribute("aria-hidden", "false");
+    requestAnimationFrame(() => {
+      celebrateModal.classList.add("show");
+    });
+    listenBtn.disabled = true;
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+  }
+
+  function closeCelebration(){
+    celebrateModal.classList.remove("show");
+    celebrateModal.setAttribute("aria-hidden", "true");
+    setTimeout(() => {
+      celebrateModal.classList.add("hidden");
+    }, 520);
+    prevBtn.disabled = idx === 0;
+    listenBtn.disabled = bypassToggle.checked;
+    nextBtn.disabled = bypassToggle.checked;
+  }
+
   function render(){
+    const cards = activeStory().cards;
     const text = cards[idx];
     cardTextEl.textContent = text;
     progressEl.textContent = `Card ${idx+1} of ${cards.length}`;
     prevBtn.disabled = idx === 0;
     nextBtn.disabled = !bypassToggle.checked;
     listenBtn.disabled = bypassToggle.checked;
-    transcriptEl.textContent = "(nothing yet)";
     scoreEl.textContent = "—";
     if (bypassToggle.checked){
-      setStatus("Bypass enabled. Tap Next to continue.", "muted");
+      setStatus("Bypass", "muted");
     } else {
-      setStatus("Ready.");
+      setStatus("");
     }
   }
 
@@ -424,8 +746,18 @@
     needEl.textContent = v.toFixed(2);
   }
 
+  function updateListenTimeUI(){
+    const seconds = Number(listenTimeEl.value);
+    listenTimeValEl.textContent = `${seconds}s`;
+  }
+
   function stopListening(){
     listening = false;
+    listenBuffer = "";
+    if (listenTimer){
+      clearTimeout(listenTimer);
+      listenTimer = null;
+    }
     listenBtn.textContent = "🎙️ Listen";
     if (recognition) {
       try { recognition.stop(); } catch {}
@@ -434,11 +766,11 @@
 
   function startListening(){
     if (bypassToggle.checked){
-      setStatus("Bypass enabled. Listening is off.", "bad");
+      setStatus("Bypass", "muted");
       return;
     }
     if (!hasRecognition){
-      setStatus("Speech recognition not supported here. Try Chrome/Edge on desktop/Android.", "bad");
+      setStatus("Try Again", "bad");
       return;
     }
     if (listening) { stopListening(); return; }
@@ -450,71 +782,91 @@
 
     recognition = new SpeechRecognition();
     recognition.lang = "en-US";
+    recognition.continuous = true;
     recognition.interimResults = false;
     recognition.maxAlternatives = 3;
 
     listening = true;
+    listenBuffer = "";
     listenBtn.textContent = "⏹ Stop";
-    setStatus("Listening… read the card out loud.", "muted");
+    setStatus("Listening", "muted");
+    const maxListenMs = Number(listenTimeEl.value) * 1000;
+    listenTimer = setTimeout(() => {
+      setStatus("Try Again", "bad");
+      stopListening();
+    }, maxListenMs);
 
     recognition.onresult = (e) => {
-      const transcript = e.results[0][0].transcript || "";
-      transcriptEl.textContent = transcript || "(empty)";
-      const expected = normalize(cards[idx].replace(/\n+/g, " "));
-      const said = normalize(transcript);
-      const score = similarity(said, expected);
+      let newText = "";
+      for (let i = e.resultIndex; i < e.results.length; i++){
+        if (e.results[i].isFinal){
+          newText += (e.results[i][0].transcript || "") + " ";
+        }
+      }
+      listenBuffer = (listenBuffer + " " + newText).trim();
+      if (newText){
+        console.log("[speech]", newText.trim());
+      }
+      console.log("[speech:buffer]", listenBuffer);
+      const expectedWords = normalizeWords(activeStory().cards[idx].replace(/\n+/g, " "));
+      const saidWords = normalizeWords(listenBuffer);
+      const score = wordSimilarity(saidWords, expectedWords);
 
       scoreEl.textContent = score.toFixed(2);
 
       const threshold = Number(strictnessEl.value);
       if (score >= threshold){
-        setStatus(`Nice! That matches (score ${score.toFixed(2)}). Next unlocked.`, "good");
+        setStatus("Great job", "good");
         nextBtn.disabled = false;
+        openCelebration();
+        stopListening();
+      } else if (score >= Math.max(0, threshold - 0.08)) {
+        setStatus("Almost", "warn");
+        nextBtn.disabled = true;
       } else {
-        setStatus(`Almost. Try again (score ${score.toFixed(2)}).`, "bad");
+        setStatus("Try Again", "bad");
         nextBtn.disabled = true;
       }
-
-      stopListening();
     };
 
     recognition.onerror = (e) => {
-      const msg = (e && e.error) ? e.error : "unknown error";
-      setStatus(`Speech error: ${msg}.`, "bad");
+      setStatus("Try Again", "bad");
       stopListening();
     };
 
     recognition.onend = () => {
-      // Some browsers end automatically after result; ensure UI resets.
-      if (listening) stopListening();
+      // Some browsers end automatically; restart while we still want to listen.
+      if (!listening) return;
+      try { recognition.start(); } catch {}
     };
 
     try {
       recognition.start();
     } catch (err) {
-      setStatus("Could not start microphone. Check permissions.", "bad");
+      setStatus("Try Again", "bad");
       stopListening();
     }
   }
 
   function speakCard(){
     if (!hasTTS){
-      setStatus("Text-to-speech not supported here.", "bad");
+      setStatus("Try Again", "bad");
       return;
     }
     // Don’t overlap utterances
     try { window.speechSynthesis.cancel(); } catch {}
-    const u = new SpeechSynthesisUtterance(cards[idx].replace(/\n+/g, " "));
+    const u = new SpeechSynthesisUtterance(activeStory().cards[idx].replace(/\n+/g, " "));
     u.lang = "en-US";
     u.rate = 0.95;   // slightly slower for kids
     u.pitch = 1.0;
-    setStatus("Speaking the sentence…", "muted");
-    u.onend = () => setStatus("Ready.");
-    u.onerror = () => setStatus("TTS error.", "bad");
+    setStatus("");
+    u.onend = () => setStatus("");
+    u.onerror = () => setStatus("Try Again", "bad");
     window.speechSynthesis.speak(u);
   }
 
   function next(){
+    const cards = activeStory().cards;
     if (idx < cards.length - 1){
       idx++;
       render();
@@ -530,11 +882,20 @@
 
   // ---------- Wire up ----------
   strictnessEl.addEventListener("input", updateStrictnessUI);
+  listenTimeEl.addEventListener("input", updateListenTimeUI);
   listenBtn.addEventListener("click", startListening);
   speakBtn.addEventListener("click", speakCard);
   nextBtn.addEventListener("click", next);
   prevBtn.addEventListener("click", prev);
   bypassToggle.addEventListener("change", render);
+  storySelect.addEventListener("change", () => {
+    setStory(Number(storySelect.value));
+  });
+  startBtn.addEventListener("click", startReading);
+  celebrateNextBtn.addEventListener("click", () => {
+    closeCelebration();
+    next();
+  });
 
   // Keyboard helpers (desktop testing)
   window.addEventListener("keydown", (e) => {
@@ -551,13 +912,14 @@
 
   if (!hasRecognition){
     bypassToggle.checked = true;
-  }
-  if (!hasRecognition){
     supportPill.textContent += " (iPhone uses bypass)";
   }
 
+  populateStories();
+  setStory(0);
+
   updateStrictnessUI();
-  render();
+  updateListenTimeUI();
 })();
 </script>
 </body>
