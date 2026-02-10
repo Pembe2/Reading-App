@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -56,24 +56,29 @@
     }
     header{
       display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:10px 6px 0;
+    }
+    .nav{
+      display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
-      padding:10px 6px 0;
     }
-    .title{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    .title h1{
+    .nav h1{
       margin:0;
       font-size:16px;
       letter-spacing:.2px;
     }
-    .title .sub{
+    .sub{
       font-size:12px;
       color:var(--muted);
+    }
+    .support-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
     .pill{
       font-size:12px;
@@ -119,6 +124,46 @@
       white-space:nowrap;
     }
     input[type="range"]{ width:160px; }
+    .toggle{
+      position:relative;
+      width:46px;
+      height:26px;
+      display:inline-block;
+      vertical-align:middle;
+    }
+    .toggle input{
+      opacity:0;
+      width:0;
+      height:0;
+    }
+    .slider{
+      position:absolute;
+      inset:0;
+      background: rgba(255,255,255,.12);
+      border:1px solid var(--line);
+      border-radius:999px;
+      transition: background .2s ease, border-color .2s ease;
+    }
+    .slider::before{
+      content:"";
+      position:absolute;
+      height:20px;
+      width:20px;
+      left:3px;
+      top:50%;
+      transform: translateY(-50%);
+      background: #fff;
+      border-radius:50%;
+      transition: transform .2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,.35);
+    }
+    .toggle input:checked + .slider{
+      background: rgba(53,208,127,.25);
+      border-color: rgba(53,208,127,.5);
+    }
+    .toggle input:checked + .slider::before{
+      transform: translate(20px, -50%);
+    }
 
     .page{
       flex:1;
@@ -336,8 +381,6 @@
         gap:8px;
       }
       header{
-        flex-direction:column;
-        align-items:flex-start;
         gap:6px;
       }
       .card-top{
@@ -366,11 +409,18 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="title">
-        <h1>Read-to-Advance (Barebones)</h1>
-        <div class="sub">Tap <b>Listen</b>, read out loud, then advance if it matches.</div>
+      <div class="nav">
+        <div class="nav-left">
+          <h1>Read-to-Advance</h1>
+        </div>
+        <div class="nav-right">
+          <button class="pill" id="menuBtn" title="Back to story selection">☰ Menu</button>
+        </div>
       </div>
-      <div class="pill" id="supportPill">Checking browser support…</div>
+      <div class="sub">Tap <b>Listen</b>, read out loud, then advance if it matches.</div>
+      <div class="support-row">
+        <div class="pill" id="supportPill">Checking browser support…</div>
+      </div>
     </header>
 
     <section class="card card-compact" id="welcomeCard">
@@ -412,6 +462,7 @@
           <input id="listenTime" type="range" min="6" max="25" step="1" value="20" />
           <span id="listenTimeVal">20s</span>
         </label>
+        
       </div>
 
       <div class="page">
@@ -431,15 +482,19 @@
           </div>
 
           <label class="strict" style="justify-content:space-between;">
-            Bypass Listen (iPhone)
-            <input id="bypassToggle" type="checkbox" />
+            Bypass Listen
+            <span class="toggle">
+              <input id="bypassToggle" type="checkbox" />
+              <span class="slider"></span>
+            </span>
           </label>
           <div class="side-row">
-            <div class="status" id="status">�</div>
+            <div class="status" id="status">&mdash;</div>
             <div class="kpi">
-              <div class="chip">Match: <b id="score">�</b></div>
+              <div class="chip">Match: <b id="score">&mdash;</b></div>
               <div class="chip">Need: <b id="need">0.85</b></div>
             </div>
+          </div>
         </div>
       </div>
     </section>
@@ -570,6 +625,7 @@
   const prevBtn   = document.getElementById("prevBtn");
   const nextBtn   = document.getElementById("nextBtn");
   const bypassToggle = document.getElementById("bypassToggle");
+  const menuBtn = document.getElementById("menuBtn");
 
   const welcomeCard = document.getElementById("welcomeCard");
   const readerCard = document.getElementById("readerCard");
@@ -718,6 +774,13 @@
     welcomeCard.classList.add("hidden");
     readerCard.classList.remove("hidden");
     render();
+  }
+
+  function showWelcome(){
+    stopListening();
+    closeCelebration();
+    readerCard.classList.add("hidden");
+    welcomeCard.classList.remove("hidden");
   }
 
   function openCelebration(){
@@ -914,6 +977,7 @@
     closeCelebration();
     next();
   });
+  menuBtn.addEventListener("click", showWelcome);
 
   // Keyboard helpers (desktop testing)
   window.addEventListener("keydown", (e) => {
@@ -942,4 +1006,6 @@
 </script>
 </body>
 </html>
+
+
 
